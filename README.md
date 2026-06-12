@@ -1,1 +1,1 @@
-# rag-from-scratchGOOGLE_API_KEY=AIzaSyBxthT_IhZu-wiflTGTMiSRvVWTvt1WlMQ
+# rag-from-scratch
