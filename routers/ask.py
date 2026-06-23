@@ -4,12 +4,16 @@ from services.retrieval_service import retrieve_context, generate_answer_with_ll
 
 router = APIRouter()
 
+from typing import Literal
+
 class QuestionRequest(BaseModel):
     question: str = Field(..., description="The question to ask the RAG system.")
     n_results: int = Field(3, ge=1, le=10, description="The number of matching text chunks to retrieve.")
+    mode: Literal["strict", "hybrid"] = Field("strict", description="Use 'strict' to only answer from context, or 'hybrid' to allow general AI knowledge.")
 
 class QuestionResponse(BaseModel):
     answer: str
+    confidence_score: int
     context: list[str]
 
 @router.post("/ask", response_model=QuestionResponse)
@@ -22,10 +26,11 @@ def ask_question(request: QuestionRequest):
 
     try:
         context_str, context_list = retrieve_context(request.question, n_results=request.n_results)
-        answer = generate_answer_with_llm(request.question, context_str)
+        ai_result = generate_answer_with_llm(request.question, context_str, mode=request.mode)
         
         return QuestionResponse(
-            answer=answer,
+            answer=ai_result["answer"],
+            confidence_score=ai_result.get("confidence_score", 0),
             context=context_list
         )
     except Exception as e:
