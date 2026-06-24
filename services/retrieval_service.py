@@ -9,10 +9,10 @@ from db.chroma_client import get_collection
 
 load_dotenv()
 
-def retrieve_context(query: str, collection_name: str = "knowledge_base", n_results: int = 3) -> tuple[str, list[str]]:
+def retrieve_context(query: str, collection_name: str = "knowledge_base", n_results: int = 3) -> tuple[str, list[str], int]:
     """
     Finds the most relevant chunks in ChromaDB for a given query.
-    Returns a tuple of (joined_context_string, list_of_raw_chunks).
+    Returns a tuple of (joined_context_string, list_of_raw_chunks, confidence_score).
     """
     collection = get_collection(collection_name)
     query_vector = get_embedding(query)
@@ -23,15 +23,25 @@ def retrieve_context(query: str, collection_name: str = "knowledge_base", n_resu
     )
     
     if not results or not results.get('documents') or not results['documents'][0]:
-        return "", []
+        return "", [], 0
         
     chunks = results['documents'][0]
+    distances = results['distances'][0] if results.get('distances') else []
     context = "\n\n".join(chunks)
-    return context, chunks
+    
+    # Calculate retrieval confidence (0-100)
+    # ChromaDB uses squared L2 distance by default. For normalized embeddings, Cosine Similarity = 1 - (L2 / 2).
+    if distances:
+        similarities = [1 - (d / 2) for d in distances]
+        avg_similarity = sum(similarities) / len(similarities)
+        confidence_score = max(0, min(100, int(avg_similarity * 100)))
+    else:
+        confidence_score = 0
+        
+    return context, chunks, confidence_score
 
 class AIAnswer(BaseModel):
     answer: str = Field(description="The final answer to the user's question. If the answer is not in the context, say 'I don't have enough information to answer that.'")
-    confidence_score: int = Field(description="Your confidence score from 1 to 100 on whether the answer is fully supported by the provided context.")
 
 def generate_answer_with_llm(question: str, context: str, mode: str = "strict") -> dict:
     """
@@ -45,9 +55,8 @@ def generate_answer_with_llm(question: str, context: str, mode: str = "strict") 
 
     prompt = f"""You are a helpful assistant. {instruction}
 
-You MUST return your response as a valid JSON object with EXACTLY these two keys:
+You MUST return your response as a valid JSON object with EXACTLY this key:
 1. "answer": The final answer to the user's question.
-2. "confidence_score": An integer from 1 to 100 representing your confidence that the answer is accurate.
 
 Context:
 {context}
@@ -75,6 +84,6 @@ Question: {question}"""
             return structured_data.model_dump()
             
         except Exception as e:
-            return {"answer": f"Error generating answer: {str(e)}", "confidence_score": 0}
+            return {"answer": f"Error generating answer: {str(e)}"}
 
-    return {"answer": "Error: No LLM API key configured.", "confidence_score": 0}
+    return {"answer": "Error: No LLM API key configured."}

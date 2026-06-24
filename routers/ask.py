@@ -25,12 +25,12 @@ def ask_question(request: QuestionRequest):
         raise HTTPException(status_code=400, detail="Question text cannot be empty.")
 
     try:
-        context_str, context_list = retrieve_context(request.question, n_results=request.n_results)
+        context_str, context_list, retrieval_confidence = retrieve_context(request.question, n_results=request.n_results)
         ai_result = generate_answer_with_llm(request.question, context_str, mode=request.mode)
         
         return QuestionResponse(
             answer=ai_result["answer"],
-            confidence_score=ai_result.get("confidence_score", 0),
+            confidence_score=retrieval_confidence,
             context=context_list
         )
     except Exception as e:
