@@ -53,12 +53,21 @@ def generate_answer_with_llm(question: str, context: str, mode: str = "strict") 
     else:
         instruction = "Answer the question using ONLY the context provided below. If the answer is not in the context, say 'I don't have enough information to answer that.'"
 
-    prompt = f"""You are a helpful assistant. {instruction}
+    system_prompt = f"""You are a helpful assistant.
+{instruction}
 
-You MUST return your response as a valid JSON object with EXACTLY this key:
-1. "answer": The final answer to the user's question.
+Return ONLY valid JSON.
 
-Context:
+Example:
+{{
+  "answer": "A token is a piece of text."
+}}
+
+Do not output markdown.
+Do not output explanations.
+Do not output code fences."""
+
+    user_prompt = f"""Context:
 {context}
 
 Question: {question}"""
@@ -72,9 +81,12 @@ Question: {question}"""
             )
             response = client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
-                messages=[{"role": "user", "content": prompt}],
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
                 temperature=0.1,
-                max_tokens=1024,
+                max_tokens=300,
                 response_format={"type": "json_object"}
             )
             

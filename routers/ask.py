@@ -8,7 +8,7 @@ from typing import Literal
 
 class QuestionRequest(BaseModel):
     question: str = Field(..., description="The question to ask the RAG system.")
-    n_results: int = Field(3, ge=1, le=10, description="The number of matching text chunks to retrieve.")
+    n_results: int = Field(2, ge=1, le=10, description="The number of matching text chunks to retrieve.")
     mode: Literal["strict", "hybrid"] = Field("strict", description="Use 'strict' to only answer from context, or 'hybrid' to allow general AI knowledge.")
 
 class QuestionResponse(BaseModel):
