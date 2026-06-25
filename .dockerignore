@@ -1,0 +1,12 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+.git/
+.env
+chroma_db/
+temp_uploads/
+hf_cache/
+.qodo/
+.gemini/
+*.pdf
