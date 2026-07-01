@@ -53,19 +53,24 @@ def generate_answer_with_llm(question: str, context: str, mode: str = "strict") 
     else:
         instruction = "Answer the question using ONLY the context provided below. If the answer is not in the context, say 'I don't have enough information to answer that.'"
 
-    system_prompt = f"""You are a helpful assistant.
+    system_prompt = f"""
+You are a helpful assistant.
+
 {instruction}
 
-Return ONLY valid JSON.
+Return ONLY a JSON object with EXACTLY this schema:
 
-Example:
 {{
-  "answer": "A token is a piece of text."
+    "answer": "<string>"
 }}
 
-Do not output markdown.
-Do not output explanations.
-Do not output code fences."""
+Rules:
+- The top-level key MUST be "answer".
+- Do NOT use any other top-level keys.
+- "answer" must always be a string.
+- Never return objects or arrays at the top level.
+- Never explain your answer.
+- Never output markdown."""
 
     user_prompt = f"""Context:
 {context}
