@@ -30,6 +30,10 @@ def process_pdf(pdf_path: str, collection_name: str = "knowledge_base") -> int:
     ids = [f"{safe_filename}_chunk_{i}" for i in range(len(chunks))]
     metadatas = [{"source": filename} for _ in chunks]
 
+    # Delete any existing chunks for this document first to prevent
+    # orphaned chunks if the chunking configuration (size, overlap) has changed.
+    collection.delete(where={"source": filename})
+
     collection.upsert(
         documents=chunks,
         embeddings=embeddings,

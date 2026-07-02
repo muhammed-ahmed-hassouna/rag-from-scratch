@@ -9,4 +9,4 @@ def get_collection(name: str = "knowledge_base"):
     """
     Get or create a ChromaDB collection by name.
     """
-    return client.get_or_create_collection(name)
+    return client.get_or_create_collection(name, metadata={"hnsw:space": "cosine"})

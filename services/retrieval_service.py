@@ -30,9 +30,9 @@ def retrieve_context(query: str, collection_name: str = "knowledge_base", n_resu
     context = "\n\n".join(chunks)
     
     # Calculate retrieval confidence (0-100)
-    # ChromaDB uses squared L2 distance by default. For normalized embeddings, Cosine Similarity = 1 - (L2 / 2).
+    # Since the collection is configured to use cosine space, Chroma returns Cosine Distance (1 - Cosine Similarity).
     if distances:
-        similarities = [1 - (d / 2) for d in distances]
+        similarities = [1 - d for d in distances]
         avg_similarity = sum(similarities) / len(similarities)
         confidence_score = max(0, min(100, int(avg_similarity * 100)))
     else:

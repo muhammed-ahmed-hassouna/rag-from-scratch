@@ -26,7 +26,7 @@ def get_embeddings(texts: list[str]) -> list[list[float]]:
     """
     if not texts:
         return []
-    embeddings = _get_model().encode(texts, show_progress_bar=False)
+    embeddings = _get_model().encode(texts, show_progress_bar=False, normalize_embeddings=True)
     return embeddings.tolist()
 
 def get_embedding(text: str) -> list[float]:
