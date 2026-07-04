@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routers import upload, ask
+from routers import upload, ask, agent
 
 app = FastAPI(
     title="RAG from Scratch API",
@@ -10,6 +10,7 @@ app = FastAPI(
 # Include API routers
 app.include_router(upload.router, tags=["Ingestion"])
 app.include_router(ask.router, tags=["Retrieval"])
+app.include_router(agent.router, tags=["Agentic Retrieval"])
 
 @app.get("/")
 def read_root():
